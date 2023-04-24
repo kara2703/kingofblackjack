@@ -1,96 +1,102 @@
-import random
 
-# Define the Q-table
-Q = {}
+from collections import defaultdict
+import seaborn as sns
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.patches import Patch
+from tqdm import tqdm
+import gymnasium as gym
 
-# Define the learning rate and discount factor
-alpha = 0.5
-gamma = 1.0
+from gymTraining import trainGymRlModel
+import evaluation as eval
 
-# Define the exploration/exploitation strategy
-epsilon = 0.1
+#NOTE this is taken from https://gymnasium.farama.org/environments/toy_text/blackjack/
 
-# Define the initial state of the game
-state = (0, 0, False) # (player sum, dealer showing card, usable ace)
+n_episodes = 100_000
 
-# Define the actions
-actions = ['hit', 'stand']
 
-# Define the reward function
-def reward(player_sum, dealer_sum):
-    if player_sum > 21:
-        return -1
-    elif dealer_sum > 21 or player_sum > dealer_sum:
-        return 1
-    elif player_sum == dealer_sum:
-        return 0
-    else:
-        return -1
+env = gym.make("Blackjack-v1", sab=True)
+env = gym.wrappers.RecordEpisodeStatistics(env, deque_size=n_episodes)
 
-# Initialize the Q-table
-for player_sum in range(12, 22):
-    for dealer_sum in range(1, 11):
-        for usable_ace in [True, False]:
-            state = (player_sum, dealer_sum, usable_ace)
-            Q[state] = {}
-            for action in actions:
-                Q[state][action] = 0.0
+class QLearningBlackjack:
+    def __init__(
+        self,
+        learning_rate: float,
+        initial_epsilon: float,
+        epsilon_decay: float,
+        final_epsilon: float,
+        discount_factor: float = 0.95,
+    ):
+        self.q_values = defaultdict(lambda: np.zeros(env.action_space.n))
 
-# Define the function for choosing an action
-def choose_action(state):
-    if random.random() < epsilon:
-        action = random.choice(actions)
-    else:
-        q_values = Q[state]
-        max_q = max(q_values.values())
-        actions_with_max_q = [a for a, q in q_values.items() if q == max_q]
-        action = random.choice(actions_with_max_q)
-    return action
+        self.lr = learning_rate
+        self.discount_factor = discount_factor
 
-# Play the game using Q-learning
-for episode in range(100000):
-    # Start a new game
-    player_sum = random.randint(12, 21)
-    dealer_sum = random.randint(1, 10)
-    usable_ace = False
-    if player_sum == 21:
-        usable_ace = True
-    state = (player_sum, dealer_sum, usable_ace)
+        self.epsilon = initial_epsilon
+        self.epsilon_decay = epsilon_decay
+        self.final_epsilon = final_epsilon
 
-    # Play the game until the player stands or busts
-    while True:
-        action = choose_action(state)
-        if action == 'hit':
-            card = random.randint(1, 10)
-            if card == 1 and player_sum + 11 <= 21:
-                player_sum += 11
-                usable_ace = True
-            else:
-                player_sum += card
-                usable_ace = False
-            if player_sum > 21:
-                reward_value = -1
-                break
-            else:
-                state = (player_sum, dealer_sum, usable_ace)
+        self.training_error = []
+
+    def get_action(self, obs: tuple[int, int, bool]) -> int:
+        """
+        Returns the best action with probability (1 - epsilon)
+        otherwise a random action with probability epsilon to ensure exploration.
+        """
+        # with probability epsilon return a random action to explore the environment
+        if np.random.random() < self.epsilon:
+            return env.action_space.sample()
+
+        # with probability (1 - epsilon) act greedily (exploit)
         else:
-            break
+            return int(np.argmax(self.q_values[obs]))
 
-    # Play the dealer's turn
-    if player_sum <= 21:
-        while dealer_sum < 17:
-            card = random.randint(1, 10)
-            if card == 1 and dealer_sum + 11 <= 21:
-                dealer_sum += 11
-            else:
-                dealer_sum += card
-        reward_value = reward(player_sum, dealer_sum)
+    def update(
+        self,
+        obs: tuple[int, int, bool],
+        action: int,
+        reward: float,
+        terminated: bool,
+        next_obs: tuple[int, int, bool],
+    ):
+        """Updates the Q-value of an action."""
+        future_q_value = (not terminated) * np.max(self.q_values[next_obs])
+        temporal_difference = (
+            reward + self.discount_factor * future_q_value - self.q_values[obs][action]
+        )
 
-    # Update the Q-table
-    for s, a in zip(states, actions):
-        q_value = Q[s][a]
-        next_q_values = Q[next_state]
-        max_next_q = max(next_q_values.values())
-        target = reward_value + gamma * max_next_q
-        new_q_value = (1 - alpha) * q_value + alpha * target
-        Q[s][a] = new_q_value
+        self.q_values[obs][action] = (
+            self.q_values[obs][action] + self.lr * temporal_difference
+        )
+        self.training_error.append(temporal_difference)
+
+    def decay_epsilon(self):
+        self.epsilon = max(self.final_epsilon, self.epsilon - epsilon_decay)
+
+learning_rate = 0.1
+start_epsilon = 1.0
+epsilon_decay = start_epsilon / (n_episodes / 2)  # reduce the exploration over time
+final_epsilon = 0.1
+
+agent = QLearningBlackjack(
+    learning_rate=learning_rate,
+    initial_epsilon=start_epsilon,
+    epsilon_decay=epsilon_decay,
+    final_epsilon=final_epsilon,
+)
+
+# Train using 
+trainGymRlModel(agent, env, n_episodes)
+
+print("Finished training.  Running evaluation")
+
+(wins, draws, losses, averageRet, iters) = eval.evaluate(eval.policyOfGymAgent(agent), 100000)
+
+print("Win rate: {}\nDraw Rate: {}\nLoss Rate: {}\nAverageRet: {}".format(wins / iters, draws / iters, losses / iters, averageRet))
+
+eval.rlTrainingPlots(env, agent)
+
+# state values & policy with usable ace (ace counts as 11)
+value_grid, policy_grid = eval.create_grids(agent, usable_ace=False)
+fig1 = eval.create_plots(value_grid, policy_grid, title="Without usable ace")
+plt.show()
