@@ -129,17 +129,20 @@ class BlackJack(object):
 
             self._giveCredit(player_value, dealer_value)
 
-class BlackJackState(object):
-    """
-    BlackJackState 
-    """
+# class BlackJackState(object):
+#     """
+#     BlackJackState 
+#     """
 
 class Policy(object):
-    def determineAction(blackjackState) -> bool:
+    def determineAction(current_value, usable_ace, dealer_showing) -> bool:
         """
         evaluatePolicy determines whether to hit (True) or stick (False)
         based on the current blackjackState.  
 
-        blackjackState is a BlackJack object
+        current_value is the current total of the cards
+        usable_ace is true if there is an ace that can have its value reduced
+        dealer_showing is a value between 1 and 10 showing the value of the 
+            dealer's card, 1 for ace, 10 for 10 or face card.
         """
         
