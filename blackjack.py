@@ -30,7 +30,7 @@ class BlackJack(object):
                 usable_ace = False
             else:
                 return current_value, usable_ace, True
-        # HIT17
+        # Stick on for dealer 17
         if current_value >= 17:
             return current_value, usable_ace, True
         else:
@@ -145,4 +145,5 @@ class Policy(object):
         dealer_showing is a value between 1 and 10 showing the value of the 
             dealer's card, 1 for ace, 10 for 10 or face card.
         """
+        return current_value < 17
         
