@@ -1,0 +1,3 @@
+```
+pip -r requirements.txt
+```

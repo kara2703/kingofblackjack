@@ -52,6 +52,7 @@ def evaluate(policy: Policy, nIterations = 100_000):
 
 import matplotlib.pyplot as plt
 
+# Based on https://gymnasium.farama.org/tutorials/training_agents/blackjack_tutorial/
 # Generate plots of rl training rates 
 def rlTrainingPlots(env, agent):
     rolling_length = 500

@@ -1,22 +1,19 @@
 
 from collections import defaultdict
-import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.patches import Patch
-from tqdm import tqdm
 import gymnasium as gym
 
 from gymTraining import trainGymRlModel
 import evaluation as eval
 
-#NOTE this is taken from https://gymnasium.farama.org/environments/toy_text/blackjack/
+# NOTE this is taken from https://gymnasium.farama.org/environments/toy_text/blackjack/
 
 n_episodes = 100_000
 
-
 env = gym.make("Blackjack-v1", sab=True)
 env = gym.wrappers.RecordEpisodeStatistics(env, deque_size=n_episodes)
+
 
 class QLearningBlackjack:
     def __init__(
@@ -62,7 +59,8 @@ class QLearningBlackjack:
         """Updates the Q-value of an action."""
         future_q_value = (not terminated) * np.max(self.q_values[next_obs])
         temporal_difference = (
-            reward + self.discount_factor * future_q_value - self.q_values[obs][action]
+            reward + self.discount_factor *
+            future_q_value - self.q_values[obs][action]
         )
 
         self.q_values[obs][action] = (
@@ -73,9 +71,11 @@ class QLearningBlackjack:
     def decay_epsilon(self):
         self.epsilon = max(self.final_epsilon, self.epsilon - epsilon_decay)
 
+
 learning_rate = 0.1
 start_epsilon = 1.0
-epsilon_decay = start_epsilon / (n_episodes / 2)  # reduce the exploration over time
+# reduce the exploration over time
+epsilon_decay = start_epsilon / (n_episodes / 2)
 final_epsilon = 0.1
 
 agent = QLearningBlackjack(
@@ -85,14 +85,16 @@ agent = QLearningBlackjack(
     final_epsilon=final_epsilon,
 )
 
-# Train using 
+# Train using
 trainGymRlModel(agent, env, n_episodes)
 
 print("Finished training.  Running evaluation")
 
-(wins, draws, losses, averageRet, iters) = eval.evaluate(eval.policyOfGymAgent(agent), 100000)
+(wins, draws, losses, averageRet, iters) = eval.evaluate(
+    eval.policyOfGymAgent(agent), 100000)
 
-print("Win rate: {}\nDraw Rate: {}\nLoss Rate: {}\nAverageRet: {}".format(wins / iters, draws / iters, losses / iters, averageRet))
+print("Win rate: {}\nDraw Rate: {}\nLoss Rate: {}\nAverageRet: {}".format(
+    wins / iters, draws / iters, losses / iters, averageRet))
 
 eval.rlTrainingPlots(env, agent)
 
