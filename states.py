@@ -2,7 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-
+# https://github.com/MJeremy2017/reinforcement-learning-implementation/blob/master/BlackJack/blackjack_mc.py
+# https://github.com/MJeremy2017/reinforcement-learning-implementation/blob/master/BlackJack/blackjack_solution.py
 class BlackJackMC(object):
 
     """
@@ -24,24 +25,62 @@ class BlackJackMC(object):
         c_list = list(range(1, 11)) + [10, 10, 10]
         return np.random.choice(c_list)
 
-    def dealerPolicy(self, current_value, usable_ace, is_end):
-        if current_value > 21:
-            if usable_ace:
-                current_value -= 10
-                usable_ace = False
-            else:
-                return current_value, usable_ace, True
-        # HIT17
-        if current_value >= 17:
-            return current_value, usable_ace, True
+    """
+    dealer's policy: Our dealer policy is to hit when card value less 
+    than 17 and stand when 17 or above. The function will be able to 
+    return a new value based on the action chosen and 
+    be able to tell if the game is ended.
+    This function can be called recursively until reaches its end as 
+    its returns is the same as inputs. We keep track of the usable
+    ace, when current value is less than 10, the ace will always
+    be taken as 11, otherwise 1; When current value is over 21
+    and the dealer has usable ace on hand, then the usable ace will
+    be taken as 1, total value is subtracted by 10 accordingly, and 
+    the usable ace indicator will be set to false .
+    """
+    # def dealerPolicy(self, current_value, usable_ace, is_end):
+    #     if current_value > 21:
+    #         if usable_ace:
+    #             current_value -= 10
+    #             usable_ace = False
+    #         else:
+    #             return current_value, usable_ace, True
+    #     # HIT17
+    #     if current_value >= 17:
+    #         return current_value, usable_ace, True
+    #     else:
+    #         card = self.giveCard()
+    #         if card == 1:
+    #             if current_value <= 10:
+    #                 return current_value + 11, True, False
+    #             return current_value + 1, usable_ace, False
+    #         else:
+    #             return current_value + card, usable_ace, False
+class Dealer:
+    def __init__(self):
+        self.hand = []
+        self.stand_value = 17
+    
+    def get_hand_value(self):
+        hand_value = 0
+        for card in self.hand:
+            hand_value += card.get_value()
+            if card.rank == "Ace" and hand_value > 21:
+                hand_value -= 10
+        return hand_value
+    
+    def take_turn(self, deck):
+        while self.get_hand_value() < self.stand_value:
+            self.hit(deck)
+    
+    def hit(self, deck):
+        self.hand.append(deck.draw_card())
+    
+    def show_hand(self, hide_first_card=False):
+        if hide_first_card:
+            print("Dealer's hand: [Hidden Card, {}]".format(self.hand[1]))
         else:
-            card = self.giveCard()
-            if card == 1:
-                if current_value <= 10:
-                    return current_value + 11, True, False
-                return current_value + 1, usable_ace, False
-            else:
-                return current_value + card, usable_ace, False
+            print("Dealer's hand: {}".format(self.hand))
 
     # one can only has 1 usable ace
     def playerPolicy(self, current_value, usable_ace, is_end):
