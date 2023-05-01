@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 apturl==0.5.2
 asn1crypto==0.24.0
 beautifulsoup4==4.6.0
@@ -16,6 +17,19 @@ cycler==0.11.0
 defer==1.0.6
 distro==1.0.1
 distro-info==0.18ubuntu0.18.04.1
+=======
+asn1crypto==0.24.0
+beautifulsoup4==4.6.0
+certifi==2018.1.18
+chardet==3.0.4
+click==6.7
+cloudpickle==2.2.1
+colorama==0.3.7
+contourpy==1.0.7
+cryptography==2.1.4
+cycler==0.11.0
+distro==1.0.1
+>>>>>>> b40edf0 (all files update)
 evdev==0.7.0
 Farama-Notifications==0.0.4
 fonttools==4.39.3
@@ -29,7 +43,10 @@ jax-jumpy==1.0.0
 keyring==10.6.0
 keyrings.alt==3.0
 kiwisolver==1.4.4
+<<<<<<< HEAD
 language-selector==0.1
+=======
+>>>>>>> b40edf0 (all files update)
 launchpadlib==1.10.6
 lazr.restfulclient==0.13.5
 lazr.uri==1.0.3
