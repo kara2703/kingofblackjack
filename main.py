@@ -3,6 +3,7 @@ import createGraphics as cg
 
 from baseline_policies import HitterPolicy, StickerPolicy, RandomPolicy, DealerPolicy, ThorpStrategy
 from montecarlo import MonteCarloESBlackjack
+from qlearning import QLearningBlackjack
 from gymTraining import trainGymRlModel
 import gymnasium as gym
 
@@ -22,6 +23,42 @@ def runMonteCarloES():
     cg.createPolicyEvaluation(policy)
     cg.createPolicyGrid(policy)
 
+    cg.createQValuePlot(agent)
+
+
+def runQLearning():
+    n_episodes = 100_000
+    env = gym.make("Blackjack-v1", sab=True)
+    env = gym.wrappers.RecordEpisodeStatistics(env, deque_size=n_episodes)
+
+    learning_rate = 0.1
+    start_epsilon = 1.0
+    # reduce the exploration over time
+    epsilon_decay = start_epsilon / (n_episodes / 2)
+    final_epsilon = 0.1
+
+    agent = QLearningBlackjack(
+        env,
+        learning_rate=learning_rate,
+        initial_epsilon=start_epsilon,
+        epsilon_decay=epsilon_decay,
+        start_epsilon=start_epsilon,
+        final_epsilon=final_epsilon,
+        n_episodes=n_episodes
+    )
+
+    print("Training")
+
+    trainGymRlModel(agent, env, n_episodes)
+
+    policy = eval.policyOfGymAgent(agent)
+
+    cg.createPolicyEvaluation(policy)
+    cg.createPolicyGrid(policy)
+    cg.createQValuePlot(agent)
+
+    cg.createTrainingErrorPlot(agent)
+
 
 def runThorp():
     policy = ThorpStrategy()
@@ -35,4 +72,5 @@ def runThorp():
 
 
 # runThorp()
-runMonteCarloES()
+# runMonteCarloES()
+runQLearning()
