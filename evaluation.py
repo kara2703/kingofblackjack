@@ -55,46 +55,62 @@ def evaluate(policy: Policy, nIterations=100_000):
 
 # Based on https://gymnasium.farama.org/tutorials/training_agents/blackjack_tutorial/
 # Generate plots of rl training rates
+rolling_length = 500
 
 
-def rlTrainingPlots(env, agent):
-    rolling_length = 500
-    fig, axs = plt.subplots(ncols=3, figsize=(12, 5))
-    axs[0].set_title("Episode rewards")
-    # compute and assign a rolling average of the data to provide a smoother graph
+def episodeRewardsPlot(env):
+    fig, ax = plt.plot()
+    ax.set_title("Episode rewards")
     reward_moving_average = (
         np.convolve(
             np.array(env.return_queue).flatten(), np.ones(rolling_length), mode="valid"
         )
         / rolling_length
     )
-    axs[0].plot(range(len(reward_moving_average)), reward_moving_average)
-    axs[1].set_title("Episode lengths")
+
+    ax.plot(range(len(reward_moving_average)), reward_moving_average)
+
+    return plt
+
+
+def episodeLengthPlot(env):
+    fig, ax = plt.plot()
+    ax.set_title("Episode lengths")
     length_moving_average = (
         np.convolve(
             np.array(env.length_queue).flatten(), np.ones(rolling_length), mode="same"
         )
         / rolling_length
     )
-    axs[1].plot(range(len(length_moving_average)), length_moving_average)
-    axs[2].set_title("Training Error")
+    ax.plot(range(len(length_moving_average)), length_moving_average)
+    return plt
+
+
+# Requires agent to have training_error array defined
+def trainingErrorPlot(agent):
+    fig, ax = plt.plot()
+    ax.set_title("Training Error")
     training_error_moving_average = (
         np.convolve(np.array(agent.training_error),
                     np.ones(rolling_length), mode="same")
         / rolling_length
     )
-    axs[2].plot(range(len(training_error_moving_average)),
-                training_error_moving_average)
-    plt.tight_layout()
-    plt.show()
+    ax.plot(range(len(training_error_moving_average)),
+            training_error_moving_average)
+
+    return plt
+
 
 # Based on https://gymnasium.farama.org/tutorials/training_agents/blackjack_tutorial/
 
 
-def create_grids(agent, usable_ace=False):
-    """Create value and policy grid given an agent."""
-    # convert our state-action values to state values
-    # and build a policy dictionary that maps observations to actions
+# Create a figure
+
+
+def createValuePlot(agent, usable_ace, title: str):
+    """Creates a plot using a value and policy grid."""
+    min_player_count = 12
+
     state_value = defaultdict(float)
     policy = defaultdict(int)
     for obs, action_values in agent.q_values.items():
@@ -103,7 +119,7 @@ def create_grids(agent, usable_ace=False):
 
     player_count, dealer_count = np.meshgrid(
         # players count, dealers face-up card
-        np.arange(12, 22),
+        np.arange(min_player_count, 22),
         np.arange(1, 11),
     )
 
@@ -115,21 +131,41 @@ def create_grids(agent, usable_ace=False):
     )
     value_grid = player_count, dealer_count, value
 
-    # create the policy grid for plotting
-    policy_grid = np.apply_along_axis(
-        lambda obs: policy[(obs[0], obs[1], usable_ace)],
-        axis=2,
-        arr=np.dstack([player_count, dealer_count]),
+    # create a new figure with 2 subplots (left: state values, right: policy)
+    player_count, dealer_count, value = value_grid
+    fig = plt.figure(figsize=plt.figaspect(0.4))
+    fig.suptitle(title, fontsize=16)
+
+    # plot the state values
+    ax = fig.add_subplot(1, 1, 1, projection="3d")
+    ax.plot_surface(
+        player_count,
+        dealer_count,
+        value,
+        rstride=1,
+        cstride=1,
+        cmap="viridis",
+        edgecolor="none",
     )
-    return value_grid, policy_grid
+    plt.xticks(range(min_player_count, 22), range(min_player_count, 22))
+    plt.yticks(range(1, 11), ["A"] + list(range(2, 11)))
+    ax.set_title(f"State values: {title}")
+    ax.set_xlabel("Player sum")
+    ax.set_ylabel("Dealer showing")
+    ax.zaxis.set_rotate_label(False)
+    ax.set_zlabel("Value", fontsize=14, rotation=90)
+    ax.view_init(20, 220)
 
-# Create a figure
+    return fig
 
 
-def displayPolicy(policy: Policy, usable_ace=False):
+# Display a blackjack policy as a grid
+def createPolicy(policy: Policy, usable_ace=False, title=""):
+    min_player_count = 2
+
     player_count, dealer_count = np.meshgrid(
         # players count, dealers face-up card
-        np.arange(12, 22),
+        np.arange(min_player_count, 22),
         np.arange(1, 11),
     )
 
@@ -139,49 +175,20 @@ def displayPolicy(policy: Policy, usable_ace=False):
         axis=2,
         arr=np.dstack([player_count, dealer_count]),
     )
-
-
-def create_plots(value_grid, policy_grid, title: str):
-    """Creates a plot using a value and policy grid."""
-    # create a new figure with 2 subplots (left: state values, right: policy)
-    player_count, dealer_count, value = value_grid
     fig = plt.figure(figsize=plt.figaspect(0.4))
-    fig.suptitle(title, fontsize=16)
 
-    # plot the state values
-    ax1 = fig.add_subplot(1, 2, 1, projection="3d")
-    ax1.plot_surface(
-        player_count,
-        dealer_count,
-        value,
-        rstride=1,
-        cstride=1,
-        cmap="viridis",
-        edgecolor="none",
-    )
-    plt.xticks(range(12, 22), range(12, 22))
-    plt.yticks(range(1, 11), ["A"] + list(range(2, 11)))
-    ax1.set_title(f"State values: {title}")
-    ax1.set_xlabel("Player sum")
-    ax1.set_ylabel("Dealer showing")
-    ax1.zaxis.set_rotate_label(False)
-    ax1.set_zlabel("Value", fontsize=14, rotation=90)
-    ax1.view_init(20, 220)
+    ax = sns.heatmap(policy_grid, linewidth=0, annot=True,
+                     cmap="Accent_r", cbar=False)
+    ax.set_title(f"Policy: {title}")
+    ax.set_xlabel("Player sum")
+    ax.set_ylabel("Dealer showing")
+    ax.set_xticklabels(range(min_player_count, 22))
+    ax.set_yticklabels(["A"] + list(range(2, 11)), fontsize=12)
 
-    # plot the policy
-    fig.add_subplot(1, 2, 2)
-    ax2 = sns.heatmap(policy_grid, linewidth=0, annot=True,
-                      cmap="Accent_r", cbar=False)
-    ax2.set_title(f"Policy: {title}")
-    ax2.set_xlabel("Player sum")
-    ax2.set_ylabel("Dealer showing")
-    ax2.set_xticklabels(range(12, 22))
-    ax2.set_yticklabels(["A"] + list(range(2, 11)), fontsize=12)
-
-    # add a legend
     legend_elements = [
         Patch(facecolor="lightgreen", edgecolor="black", label="Hit"),
         Patch(facecolor="grey", edgecolor="black", label="Stick"),
     ]
-    ax2.legend(handles=legend_elements, bbox_to_anchor=(1.3, 1))
-    return fig
+    ax.legend(handles=legend_elements, bbox_to_anchor=(1, 1))
+
+    return plt
