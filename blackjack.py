@@ -14,8 +14,9 @@ class Policy(object):
         usable_ace is true if there is an ace that can have its value reduced
         dealer_showing is a value between 1 and 10 showing the value of the 
             dealer's card, 1 for ace, 10 for 10 or face card.
-        """        
+        """
         pass
+
 
 class BlackJack(object):
 
@@ -61,13 +62,11 @@ class BlackJack(object):
 
     # Return 1 if player wins, 0 if draw, -1 if loses
     def _determineWinner(self, playerValue, dealerValue):
-        if dealerValue > 21:
-            if playerValue > 21:
-                return 0
-            else:
-                return 1
-        elif playerValue > 21:
+        # Player loses if they bust since they go first, so check first
+        if playerValue > 21:
             return -1
+        elif dealerValue > 21:
+            return 1
         else:
             if playerValue > dealerValue:
                 return 1
@@ -75,7 +74,6 @@ class BlackJack(object):
                 return 0
             else:
                 return -1
-            
 
     def play(self):
         # hit 2 cards each
@@ -102,10 +100,11 @@ class BlackJack(object):
                     usable_ace = True
             else:
                 player_value += card
-        
+
         player_done = False
         while not player_done:
-            playerHit = self.playerPolicy.determineAction(player_value, usable_ace, show_card)
+            playerHit = self.playerPolicy.determineAction(
+                player_value, usable_ace, show_card)
 
             # Determine hit action
             if playerHit:
@@ -113,7 +112,7 @@ class BlackJack(object):
                 card = self.giveCard()
                 if card == 1:
                     if player_value <= 10:
-                        # Here we got an ace, but our current value is less than 10 so use it as an 11 and 
+                        # Here we got an ace, but our current value is less than 10 so use it as an 11 and
                         # give a usable ace
                         player_value += 11
                         usable_ace = True
@@ -138,7 +137,7 @@ class BlackJack(object):
 
         dealerAce, dealerDone = False, False
         while not dealerDone:
-            dealer_value, dealerAce, dealerDone = self._dealerPolicy(dealer_value, dealerAce, dealerDone)
+            dealer_value, dealerAce, dealerDone = self._dealerPolicy(
+                dealer_value, dealerAce, dealerDone)
 
         return self._determineWinner(player_value, dealer_value)
-
