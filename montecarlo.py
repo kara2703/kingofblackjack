@@ -5,11 +5,14 @@ import gymnasium as gym
 import evaluation as eval
 
 
-# Implementation of ES MonteCarlo as described in Sutton Bartol
-class MonteCarloESBlackjack:
+# Implementation of MonteCarlo as described in Sutton Bartol
+class MonteCarloBlackjack:
     def __init__(
         self,
-        env
+        env,
+        start_epsilon: float,
+        final_epsilon: float,
+        epsilon_change: float,
     ):
         # Table holding the q values of the current policy
         # qValues[obs] = [Q(obs, act) for all act]
@@ -30,8 +33,22 @@ class MonteCarloESBlackjack:
 
         self.training_error = []
 
+        # Epsilon-greedy setup:
+        self.epsilon = start_epsilon
+        self.final_epsilon = final_epsilon
+        self.epsilon_change = epsilon_change
+
     def get_action(self, obs: tuple[int, int, bool]) -> int:
-        return int(np.argmax(self.q_values[obs]))
+        p = np.random.rand()
+
+        a = int(np.argmax(self.q_values[obs]))
+
+        # Divide by two since one action is going to match
+        if p < self.epsilon / 2:
+            # If we are being random we start off by
+            return 1 - a
+        else:
+            return a
 
     def update(
         self,
@@ -57,4 +74,5 @@ class MonteCarloESBlackjack:
 
     # Not needed for MonteCarlo ES
     def decay_epsilon(self):
-        pass
+        self.epsilon = max(self.final_epsilon,
+                           self.epsilon - self.epsilon_change)

@@ -59,7 +59,7 @@ rolling_length = 500
 
 
 def episodeRewardsPlot(env):
-    fig, ax = plt.plot()
+    fig, ax = plt.subplots(ncols=1)
     ax.set_title("Episode rewards")
     reward_moving_average = (
         np.convolve(
@@ -74,7 +74,7 @@ def episodeRewardsPlot(env):
 
 
 def episodeLengthPlot(env):
-    fig, ax = plt.plot()
+    fig, ax = plt.subplots(ncols=1)
     ax.set_title("Episode lengths")
     length_moving_average = (
         np.convolve(
@@ -88,7 +88,7 @@ def episodeLengthPlot(env):
 
 # Requires agent to have training_error array defined
 def trainingErrorPlot(agent):
-    fig, ax = plt.plot()
+    fig, ax = plt.subplots(ncols=1)
     ax.set_title("Training Error")
     training_error_moving_average = (
         np.convolve(np.array(agent.training_error),
@@ -160,8 +160,7 @@ def createValuePlot(agent, usable_ace, title: str):
 
 
 # Display a blackjack policy as a grid
-def createPolicy(policy: Policy, usable_ace=False, title=""):
-    min_player_count = 2
+def createPolicy(policy: Policy, usable_ace=False, title="", min_player_count=4):
 
     player_count, dealer_count = np.meshgrid(
         # players count, dealers face-up card

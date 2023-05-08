@@ -8,7 +8,7 @@ def createPolicyGrid(policy):
         of input parameters
     """
     eval.createPolicy(policy, False, "No Ace").show()
-    eval.createPolicy(policy, True, "Ace").show()
+    eval.createPolicy(policy, True, "Ace", min_player_count=12).show()
 
 
 # Requires agent to have q_values defined
