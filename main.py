@@ -1,8 +1,8 @@
 import evaluation as eval
 
-from baseline_policies import HitterPolicy, StickerPolicy, RandomPolicy, DealerPolicy
+from baseline_policies import HitterPolicy, StickerPolicy, RandomPolicy, DealerPolicy, ThorpStrategy
 
-policy = DealerPolicy()
+policy = ThorpStrategy()
 
 (wins, draws, losses, averageRet, iters) = eval.evaluate(policy, 100000)
 
