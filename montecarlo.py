@@ -24,7 +24,7 @@ class MonteCarloBlackjack:
         # qValues[obs] = [Q(obs, act) for all act]
         # So qValues[obs, act] = Q(obs, act),
         # equivalently qValues[obs] = [Q(obs, stick), Q(obs, hit)]
-        self.qValues = defaultdict(lambda: np.zeroes(env.action_space.n))
+        self.q_values = defaultdict(lambda: np.zeroes(env.action_space.n))
 
         # Table holding average returns, same structure as q values
         # self.returns = defaultdict(lambda: np.zeroes(env.action_space.n))
@@ -41,7 +41,7 @@ class MonteCarloBlackjack:
 
     def get_action(self, obs: tuple[int, int, bool]) -> int:
         #
-        return int(np.argmax(self.qValues[obs]))
+        return int(np.argmax(self.q_values[obs]))
 
     def update(
         self,
@@ -51,6 +51,8 @@ class MonteCarloBlackjack:
         terminated: bool,
         next_obs: tuple[int, int, bool],
     ):
+        self.episodeStates.append((obs, action))
+
         # If we terminated we want to perform an update
         if terminated:
             for (obs, act) in self.episodeStates:
@@ -58,11 +60,10 @@ class MonteCarloBlackjack:
                 G = reward
                 n = self.nAppear[obs][act]
                 # Update average reward in q value for this state, no discounting used
-                self.qValues[obs][act] = G / n + \
-                    (n - 1) / n * self.qValues[obs][act]
-        else:
-            # We have not terminated, so add the current state to the list
-            self.episodeStates.append((obs, action))
+                self.q_values[obs][act] = G / n + \
+                    (n - 1) / n * self.q_values[obs][act]
+
+            self.episodeStates = []
 
     # Not needed for MonteCarlo ES
     def decay_epsilon(self):
@@ -88,4 +89,8 @@ print("Win rate: {}\nDraw Rate: {}\nLoss Rate: {}\nAverageRet: {}".format(
 # state values & policy with usable ace (ace counts as 11)
 value_grid, policy_grid = eval.create_grids(agent, usable_ace=False)
 fig1 = eval.create_plots(value_grid, policy_grid, title="Without usable ace")
+plt.show()
+
+value_grid, policy_grid = eval.create_grids(agent, usable_ace=True)
+fig1 = eval.create_plots(value_grid, policy_grid, title="With usable ace")
 plt.show()

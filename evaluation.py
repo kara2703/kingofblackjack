@@ -7,6 +7,7 @@ from matplotlib.patches import Patch
 from blackjack import Policy, BlackJack
 from tqdm import tqdm
 
+
 class GymPolicy(Policy):
     def __init__(self, gymPolicy):
         self.gymPolicy = gymPolicy
@@ -18,13 +19,14 @@ class GymPolicy(Policy):
         # print("pv={}, ua={},sc={} => {}".format(player_value, usable_ace, show_card, action))
 
         return action == 1
-        
 
-# Converts a gymnasium agent into our policy class for evaluation 
+
+# Converts a gymnasium agent into our policy class for evaluation
 def policyOfGymAgent(agent) -> Policy:
     return GymPolicy(agent)
 
-def evaluate(policy: Policy, nIterations = 100_000): 
+
+def evaluate(policy: Policy, nIterations=100_000):
     print("Evaluating a policy.")
     """
     return (wins, draws, losses, averageReturn, iterations)
@@ -47,13 +49,14 @@ def evaluate(policy: Policy, nIterations = 100_000):
         else:
             losses += 1
             # print("Loss")
-        
+
     return (wins, draws, losses, (wins - losses) / nIterations, nIterations)
 
-import matplotlib.pyplot as plt
 
 # Based on https://gymnasium.farama.org/tutorials/training_agents/blackjack_tutorial/
-# Generate plots of rl training rates 
+# Generate plots of rl training rates
+
+
 def rlTrainingPlots(env, agent):
     rolling_length = 500
     fig, axs = plt.subplots(ncols=3, figsize=(12, 5))
@@ -76,14 +79,18 @@ def rlTrainingPlots(env, agent):
     axs[1].plot(range(len(length_moving_average)), length_moving_average)
     axs[2].set_title("Training Error")
     training_error_moving_average = (
-        np.convolve(np.array(agent.training_error), np.ones(rolling_length), mode="same")
+        np.convolve(np.array(agent.training_error),
+                    np.ones(rolling_length), mode="same")
         / rolling_length
     )
-    axs[2].plot(range(len(training_error_moving_average)), training_error_moving_average)
+    axs[2].plot(range(len(training_error_moving_average)),
+                training_error_moving_average)
     plt.tight_layout()
     plt.show()
 
 # Based on https://gymnasium.farama.org/tutorials/training_agents/blackjack_tutorial/
+
+
 def create_grids(agent, usable_ace=False):
     """Create value and policy grid given an agent."""
     # convert our state-action values to state values
@@ -116,6 +123,24 @@ def create_grids(agent, usable_ace=False):
     )
     return value_grid, policy_grid
 
+# Create a figure
+
+
+def displayPolicy(policy: Policy, usable_ace=False):
+    player_count, dealer_count = np.meshgrid(
+        # players count, dealers face-up card
+        np.arange(12, 22),
+        np.arange(1, 11),
+    )
+
+    # create the policy grid for plotting
+    policy_grid = np.apply_along_axis(
+        lambda obs: policy.determineAction(obs[0], usable_ace, obs[1]),
+        axis=2,
+        arr=np.dstack([player_count, dealer_count]),
+    )
+
+
 def create_plots(value_grid, policy_grid, title: str):
     """Creates a plot using a value and policy grid."""
     # create a new figure with 2 subplots (left: state values, right: policy)
@@ -145,7 +170,8 @@ def create_plots(value_grid, policy_grid, title: str):
 
     # plot the policy
     fig.add_subplot(1, 2, 2)
-    ax2 = sns.heatmap(policy_grid, linewidth=0, annot=True, cmap="Accent_r", cbar=False)
+    ax2 = sns.heatmap(policy_grid, linewidth=0, annot=True,
+                      cmap="Accent_r", cbar=False)
     ax2.set_title(f"Policy: {title}")
     ax2.set_xlabel("Player sum")
     ax2.set_ylabel("Dealer showing")
