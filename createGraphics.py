@@ -20,11 +20,11 @@ def createQValuePlot(agent):
     eval.createValuePlot(agent, True, "Ace").show()
 
 
-def createPolicyEvaluation(policy):
+def createPolicyEvaluation(policy, nIterations=100_000):
     """
         Display win rate data about the given policy
     """
-    (wins, draws, losses, averageRet, iters) = eval.evaluate(policy, 100000)
+    (wins, draws, losses, averageRet, iters) = eval.evaluate(policy, nIterations)
 
     print("Win rate: {}\nDraw Rate: {}\nLoss Rate: {}\nAverageRet: {}".format(
         wins / iters, draws / iters, losses / iters, averageRet))
