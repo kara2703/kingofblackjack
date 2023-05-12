@@ -20,7 +20,7 @@ from keras.optimizers import Adam
 # from rl.memory import SequentialMemory
 
 
-class DeepQLearningSKBlackjack:
+class DeepQLearningExperBlackjack:
     def __init__(
         self,
         env,
@@ -57,9 +57,9 @@ class DeepQLearningSKBlackjack:
         # model.add(Dense(self.n_action, activation='softmax', name="output"))
 
         inputs = Input(shape=(3, ))
-        hidden1 = Dense(units=16, activation='relu')(inputs)
-        hidden2 = Dense(units=16, activation='relu')(hidden1)
-        outputs = Dense(units=2, activation='relu')(hidden2)
+        hidden1 = Dense(units=16, activation='softmax')(inputs)
+        hidden2 = Dense(units=16, activation='softmax')(hidden1)
+        outputs = Dense(units=2, activation='softmax')(hidden2)
 
         model = Model(inputs, outputs)
 
@@ -96,31 +96,40 @@ class DeepQLearningSKBlackjack:
         terminated: bool,
         next_obs: tuple[int, int, bool],
     ):
+        # Now obs and next obs has shape [[1, 2, 3]]
         obs = self._wrap(obs)
         next_obs = self._wrap(next_obs)
 
-        # print(obs.shape)
-        # print(next_obs.shape)
+        # Future prediction has shape [[1, 2]]
+        futurePrediction = self.q_network(next_obs)
+        # Now has shape [1, 2]
+        futurePrediction = futurePrediction[0].numpy()
 
-        # self.q_network(np.array([1, 2, 3, 4, 5, 6, 76]))
+        # print("--")
 
-        prediciton = self.q_network(obs)[0]
-        futurePrediction = self.q_network(next_obs)[0]
+        # print("Obs: {} Action: {} Reward: {} Terminated: {}".format(
+        #     obs, action, reward, terminated))
 
+        # print(futurePrediction)
+
+        # Action chosen
         future_q_value = (not terminated) * np.max(futurePrediction)
+        future_action = np.argmax(futurePrediction)
 
+        # Calculate the new q value
         newQValue = reward + self.discount_factor * future_q_value
 
-        target = np.zeroes((2,))
+        # print("New Q Value: {}".format(newQValue))
 
-        toUpdate = np.argmax(futurePrediction)
-        target[toUpdate] = newQValue
-        target[1 - toUpdate] = prediction[]
+        # Update new q value
+        futurePrediction[action] = newQValue
+
+        # print(futurePrediction)
+
+        # Target has shape [[1, 2]]
+        target = np.array([futurePrediction])
 
         self.q_network.fit(obs, target, verbose=0)
-
-        temporal_difference = target - prediciton[action]
-        self.training_error.append(temporal_difference)
 
     def decay_epsilon(self):
         self.epsilon = max(self.final_epsilon,

@@ -6,7 +6,7 @@ from montecarlo import MonteCarloBlackjack
 from qlearning import QLearningBlackjack
 from gymTraining import trainGymRlModel
 import gymnasium as gym
-from deep_qlearning_experiment import DeepQLearningSKBlackjack
+from deep_qlearning_experiment import DeepQLearningExperBlackjack
 
 
 def runMonteCarloES():
@@ -79,20 +79,20 @@ def runThorp():
     cg.createPolicyGrid(policy)
 
 
-def runDeepQSklearn():
-    n_episodes = 100
+def runDeepQlearnExper():
+    n_episodes = 1000
 
     env = gym.make("Blackjack-v1", sab=True)
     env = gym.wrappers.RecordEpisodeStatistics(env, deque_size=n_episodes)
 
     learning_rate = 0.1
 
-    start_epsilon = 1.0
+    start_epsilon = 0.0
     # reduce the exploration over time
     epsilon_decay = start_epsilon / (n_episodes / 2)
     final_epsilon = 0.0
 
-    agent = DeepQLearningSKBlackjack(
+    agent = DeepQLearningExperBlackjack(
         env,
         learning_rate=learning_rate,
         initial_epsilon=start_epsilon,
@@ -100,13 +100,13 @@ def runDeepQSklearn():
         final_epsilon=final_epsilon,
     )
 
-    trainGymRlModel(agent, env, n_episodes)
+    trainGymRlModel(agent, env, n_episodes, progress=True)
 
     print("Finished training.  Running evaluation")
 
     policy = eval.policyOfGymAgent(agent)
 
-    cg.createPolicyEvaluation(policy, 100)
+    cg.createPolicyEvaluation(policy, 1000)
     cg.createPolicyGrid(policy)
 
     # agent.gen_q_table()
@@ -115,4 +115,4 @@ def runDeepQSklearn():
 # runThorp()
 # runMonteCarloES()
 # runQLearning()
-runDeepQSklearn()
+runDeepQlearnExper()
