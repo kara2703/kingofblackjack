@@ -40,50 +40,70 @@ class ValueIteration:
         self.env = env
         self.gamma = gamma
         self.theta = theta
-        self.V = np.zeros(self.env.observation_space.n)
+        self.V = np.zeros((self.env.observation_space[0].n, self.env.observation_space[1].n, self.env.observation_space[2].n))
 # self.env.observation_space is actually a tuple object that contains
 # the minimum and maximum values for each observation dimension. To get the total number
 #  of possible states in the observation space, you can use the n attribute of the space object
     def train(self, num_iterations=1000):
         for i in range(num_iterations):
             delta = 0
-            for state in range(self.env.observation_space.n):
-                v = self.V[state]
-                self.V[state] = self._compute_action_value(state)
-                delta = max(delta, abs(v - self.V[state]))
+            for player_sum in range(self.env.observation_space[0].n):
+                for dealer_card in range(self.env.observation_space[1].n):
+                    for usable_ace in range(self.env.observation_space[2].n):
+                        state = (player_sum, dealer_card, usable_ace)
+                        v = self.V[player_sum, dealer_card, usable_ace]
+                        self.V[player_sum, dealer_card, usable_ace] = self._compute_action_value(state)
+                        delta = max(delta, abs(v - self.V[player_sum, dealer_card, usable_ace]))
             if delta < self.theta:
                 break
 
     def _compute_action_value(self, state):
+        player_sum, dealer_card, usable_ace = state
         action_values = np.zeros(self.env.action_space.n)
         for action in range(self.env.action_space.n):
-            for prob, next_state, reward, done in self.env.P[state][action]:
-                action_values[action] += prob * (reward + self.gamma * self.V[next_state])
+            total_reward = 0
+            for i in range(500):
+                self.env.reset()
+                next_state, reward, done, _ = self.env.step(action)
+                done = False
+                while not done:
+                    next_player_sum, next_dealer_card, next_usable_ace = next_state
+                    next_action_value = self._compute_action_value((next_player_sum, next_dealer_card, next_usable_ace))
+                    total_reward += reward + self.gamma * next_action_value
+                    next_state, reward, done, _ = self.env.step(0) if next_action_value == 0 else self.env.step(1)
+            
+                total_reward += reward
+            action_values[action] = total_reward /500
         return np.max(action_values)
 
+
     def get_policy(self):
-        policy = np.zeros(self.env.observation_space.n, dtype=int)
-        for state in range(self.env.observation_space.n):
-            action_values = np.zeros(self.env.action_space.n)
-            for action in range(self.env.action_space.n):
-                for prob, next_state, reward, done in self.env.P[state][action]:
-                    action_values[action] += prob * (reward + self.gamma * self.V[next_state])
-            policy[state] = np.argmax(action_values)
+        policy = np.zeros((self.env.observation_space[0].n, self.env.observation_space[1].n, self.env.observation_space[2].n), dtype=int)
+        for player_sum in range(self.env.observation_space[0].n):
+            for dealer_card in range(self.env.observation_space[1].n):
+                for usable_ace in range(self.env.observation_space[2].n):
+                    state = (player_sum, dealer_card, usable_ace)
+                    action_values = np.zeros(self.env.action_space.n)
+                    for action in range(self.env.action_space.n):
+                        for prob, next_state, reward, done in self.env.P[state][action]:
+                            next_player_sum, next_dealer_card, next_usable_ace = next_state
+                            action_values[action] += prob * (reward + self.gamma * self.V[next_player_sum, next_dealer_card, next_usable_ace])
+                    policy[player_sum, dealer_card, usable_ace] = np.argmax(action_values)
         return policy
 
     def get_value_function(self):
         return self.V
 
 
-def simulate_game(env, policy):
-    state = env.reset()
-    while True:
-        action = policy[state]
-        next_state, reward, done, _ = env.step(action)
-        if done:
-            return reward
-        state = next_state
-
+def simulate_game(self, policy):
+        state = self.env.reset()
+        done = False
+        while not done:
+            player_sum, dealer_card, usable_ace = state
+            action = policy[player_sum, dealer_card, usable_ace]
+            next_state, reward, done, _ = self.env.step(action)
+            state = next_state
+        return reward
 
 if __name__ == '__main__':
     env = gym.make('Blackjack')
