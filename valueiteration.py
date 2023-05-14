@@ -8,6 +8,11 @@ from gymnasium import Env
 from baseline_policies import StickerPolicy
 from tqdm import tqdm
 
+# Win rate: 0.45062
+# Draw Rate: 0.08813
+# Loss Rate: 0.46125
+# AverageRet: -0.01063
+
 
 class ValueIteration:
 
@@ -28,7 +33,7 @@ class ValueIteration:
 
     # Returns a tuple (newV, argNewV)
 
-    def _valueUpdate(self, state, simulations=10):
+    def _valueUpdate(self, state, simulations=100):
         # Perform a simulation to approximate the update rule:
         # V(s) = max_{a \in A(s)} \sum_{s', r} p(s', r | s, a)(r + \gamma V(s'))
         # We approximate \sum_{s', r} p(s', r | s, a)(r + \gamma V(s')) for hit
@@ -98,7 +103,10 @@ class ValueIteration:
                         delta = max(delta, abs(
                             v - self.V[player_sum, dealer_card, usable_ace]))
             if delta < self.theta:
+                print("BREAKKKKKKKKKK")
                 break
+
+        print("No break!!!!!!!!!!!!!!!")
 
     # Value Iteration:  Compute the optimal policy
     def get_action(self, obs: tuple[int, int, bool]) -> int:
