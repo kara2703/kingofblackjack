@@ -7,6 +7,7 @@ from valueiteration import ValueIteration
 from qlearning import QLearningBlackjack
 from gymTraining import trainGymRlModel
 import gymnasium as gym
+from valueiteration import ValueIteration
 
 
 def runMonteCarloES():
@@ -32,23 +33,6 @@ def runMonteCarloES():
 
     cg.createQValuePlot(agent)
 
-def runVIteration():
-    n_episodes = 500_000
-    env = gym.make("Blackjack-v1", sab=True)
-    env = gym.wrappers.RecordEpisodeStatistics(env, deque_size=n_episodes)
-
-    agent = MonteCarloBlackjack(
-        env, gamma=1.0, theta=1e-5)
-
-    print("Training Value Iteration")
-
-    trainGymRlModel(agent, env, n_episodes)
-
-    policy = eval.policyOfGymAgent(agent)
-
-    cg.createPolicyEvaluation(policy)
-    cg.createPolicyGrid(policy)
-    cg.createQValuePlot(agent)
 
 def runQLearning():
     n_episodes = 100_000
@@ -96,6 +80,19 @@ def runThorp():
     cg.createPolicyGrid(policy)
 
 
+def runValueIteration():
+    n_episodes = 500_000
+    env = gym.make("Blackjack-v1", sab=True)
+    env = gym.wrappers.RecordEpisodeStatistics(env, deque_size=n_episodes)
+
+    agent = ValueIteration(env)
+
+    policy = eval.policyOfGymAgent(agent)
+    cg.createPolicyEvaluation(policy)
+    cg.createPolicyGrid(policy)
+
+
+runValueIteration()
 # runThorp()
-runMonteCarloES()
+# runMonteCarloES()
 # runQLearning()

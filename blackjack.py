@@ -75,31 +75,34 @@ class BlackJack(object):
             else:
                 return -1
 
-    def play(self):
+    def play(self, state=None):
         # hit 2 cards each
         dealer_value, player_value = 0, 0
         show_card = 0
-
-        # give dealer 2 cards and show 1
-        dealer_value += self.giveCard()
-        show_card = dealer_value
-        dealer_value += self.giveCard()
-
         usable_ace = False
 
-        # Give player two cards, set up usable ace
-        NUM_PLAYER_CARDS = 2
-        for i in range(NUM_PLAYER_CARDS):
-            card = self.giveCard()
+        if state == None:
+            # give dealer 2 cards and show 1
+            dealer_value += self.giveCard()
+            show_card = dealer_value
+            dealer_value += self.giveCard()
 
-            if card == 1:
-                if usable_ace:
-                    player_value += 1
+            # Give player two cards, set up usable ace
+            NUM_PLAYER_CARDS = 2
+            for i in range(NUM_PLAYER_CARDS):
+                card = self.giveCard()
+
+                if card == 1:
+                    if usable_ace:
+                        player_value += 1
+                    else:
+                        player_value += 11
+                        usable_ace = True
                 else:
-                    player_value += 11
-                    usable_ace = True
-            else:
-                player_value += card
+                    player_value += card
+        else:
+            (player_value, show_card, usable_ace) = state
+            dealer_value = show_card
 
         player_done = False
         while not player_done:
