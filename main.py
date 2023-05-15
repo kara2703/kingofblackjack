@@ -11,6 +11,11 @@ from valueiteration import ValueIteration
 from deep_qlearning_experiment import DeepQLearningExperBlackjack
 import tensorflow as tf
 
+# Win rate: 0.437
+# Draw Rate: 0.084
+# Loss Rate: 0.479
+# AverageRet: -0.042
+
 
 def runMonteCarloES():
     n_episodes = 5_000_000
@@ -69,6 +74,7 @@ def runQLearning():
     cg.createQValuePlot(agent)
 
     cg.createTrainingErrorPlot(agent)
+    cg.createEpisodeTrainingGraphs(env)
 
 
 def runThorp():
@@ -94,13 +100,10 @@ def runValueIteration():
     cg.createPolicyGrid(policy)
 
 
-runValueIteration()
-
-
 def runDeepQlearnExper():
-    tf.random.set_seed(1865)
+    # tf.random.set_seed(1865)
 
-    n_episodes = 100000
+    n_episodes = 10000
 
     env = gym.make("Blackjack-v1", sab=True)
     env = gym.wrappers.RecordEpisodeStatistics(env, deque_size=n_episodes)
@@ -118,7 +121,10 @@ def runDeepQlearnExper():
         initial_epsilon=start_epsilon,
         epsilon_decay=epsilon_decay,
         final_epsilon=final_epsilon,
-        batch_size=50
+        min_sample=201,
+        memory_size=500,
+        sample_size=100,
+        discount_factor=1.0
     )
 
     trainGymRlModel(agent, env, n_episodes, progress=True)
@@ -138,8 +144,16 @@ def runDeepQlearnExper():
 
     # agent.gen_q_table()
 
+    cg.createPolicyEvaluation(policy)
+    cg.createPolicyGrid(policy)
+    cg.createQValuePlot(agent)
 
+    cg.createTrainingErrorPlot(agent)
+    cg.createEpisodeTrainingGraphs(env)
+
+
+# runValueIteration()
 # runThorp()
 # runMonteCarloES()
-# runQLearning()
-runDeepQlearnExper()
+runQLearning()
+# runDeepQlearnExper()

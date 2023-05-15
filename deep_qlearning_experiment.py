@@ -6,6 +6,7 @@ import gymnasium as gym
 import tensorflow as tf
 from tensorflow import keras
 
+import collections
 from gymTraining import trainGymRlModel
 import evaluation as eval
 
@@ -30,7 +31,9 @@ class DeepQLearningExperBlackjack:
         epsilon_decay: float,
         final_epsilon: float,
         discount_factor: float = 0.95,
-        batch_size: int = 1,
+        min_sample: int = 300,
+        sample_size: int = 200,
+        memory_size: int = 500
     ):
         self.env = env
 
@@ -49,9 +52,13 @@ class DeepQLearningExperBlackjack:
         self.q_values = {}
         self.training_error = []
 
-        self.batch_size = batch_size
-        self.batchObs = []
-        self.batchTarget = []
+        self.memory_size = memory_size
+
+        self.sample_size = sample_size
+
+        self.min_sample = min_sample
+        self.batchObs = collections.deque(maxlen=memory_size)
+        self.batchTarget = collections.deque(maxlen=memory_size)
 
     def gen_q_network(self):
         init = keras.initializers.HeUniform()
@@ -64,18 +71,14 @@ class DeepQLearningExperBlackjack:
         # model.add(Dense(self.n_action, activation='softmax', name="output"))
 
         inputs = Input(shape=(3, ))
-        hidden1 = Dense(units=200, activation='relu',
-                        kernel_initializer=init)(inputs)
-        hidden2 = Dense(units=64, activation='relu',
-                        kernel_initializer=init)(hidden1)
-        hidden3 = Dense(units=32, activation='relu',
-                        kernel_initializer=init)(hidden2)
-        hidden4 = Dense(units=32, activation='relu',
-                        kernel_initializer=init)(hidden3)
-        hidden5 = Dense(units=32, activation='relu',
-                        kernel_initializer=init)(hidden4)
-        outputs = Dense(units=2, activation='softmax',
-                        kernel_initializer=init)(hidden5)
+        hidden1 = Dense(units=32, activation='relu',)(inputs)
+        hidden2 = Dense(units=16, activation='relu',)(hidden1)
+        hidden3 = Dense(units=16, activation='relu',)(hidden2)
+        # hidden4 = Dense(units=32, activation='relu',
+        #                 kernel_initializer=init)(hidden3)
+        # hidden5 = Dense(units=32, activation='relu',
+        #                 kernel_initializer=init)(hidden4)
+        outputs = Dense(units=2, activation='linear')(hidden3)
 
         # inputs = Input(shape=(3, ))
         # hidden1 = Dense(units=200, activation='relu')(inputs)
@@ -92,8 +95,8 @@ class DeepQLearningExperBlackjack:
 
         model.summary()
 
-        model.compile(loss='binary_crossentropy',
-                      optimizer=Adam(learning_rate=0.0001))
+        model.compile(loss='mean_squared_error',
+                      optimizer=SGD(learning_rate=0.001))
 
         return model
 
@@ -134,36 +137,38 @@ class DeepQLearningExperBlackjack:
         # Now has shape [1, 2]
         futurePrediction = futurePrediction[0].numpy()
 
-        # print("--")
-
-        # print("Obs: {} Action: {} Reward: {} Terminated: {}".format(
-        #     obs, action, reward, terminated))
-
-        # print(futurePrediction)
-
         # Action chosen
         future_q_value = (not terminated) * np.max(futurePrediction)
 
         # Calculate the new q value
         newQValue = reward + self.discount_factor * future_q_value
 
-        # print("New Q Value: {}".format(newQValue))
-
         # Update new q value
         futurePrediction[action] = newQValue
 
         # print(futurePrediction)
 
+        # Compute current value
+        currentQValues = self.q_network(obs)[0]
+
+        self.training_error.append(newQValue - currentQValues[action])
+
         self.batchTarget.append(futurePrediction)
 
-        if len(self.batchTarget) >= self.batch_size:
+        if len(self.batchTarget) >= self.min_sample:
             allObservations = np.array(self.batchObs)
             target = np.array(self.batchTarget)
 
-            self.q_network.fit(allObservations, target, verbose=0, epochs=5)
+            # print(allObservations.shape)
 
-            self.batchTarget = []
-            self.batchObs = []
+            sample = np.random.choice(
+                allObservations.shape[0], self.sample_size, replace=False)
+
+            allObservationsSample = allObservations[sample]
+            targetSample = target[sample]
+
+            self.q_network.fit(allObservationsSample,
+                               targetSample, verbose=0)
 
     def decay_epsilon(self):
         self.epsilon = max(self.final_epsilon,
