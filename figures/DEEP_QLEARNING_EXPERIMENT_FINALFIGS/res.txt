@@ -1,0 +1,5 @@
+Deep Q Learning EXPERIMENT 
+Win rate: 0.464
+Draw Rate: 0.067
+Loss Rate: 0.469
+AverageRet: -0.005

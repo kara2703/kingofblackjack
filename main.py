@@ -144,10 +144,6 @@ def runDeepQlearnExper():
 
     # agent.gen_q_table()
 
-    cg.createPolicyEvaluation(policy)
-    cg.createPolicyGrid(policy)
-    cg.createQValuePlot(agent)
-
     cg.createTrainingErrorPlot(agent)
     cg.createEpisodeTrainingGraphs(env)
 
@@ -155,5 +151,5 @@ def runDeepQlearnExper():
 # runValueIteration()
 # runThorp()
 # runMonteCarloES()
-runQLearning()
-# runDeepQlearnExper()
+# runQLearning()
+runDeepQlearnExper()
