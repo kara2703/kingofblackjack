@@ -1,15 +1,19 @@
 
+import createGraphics as cg
 from collections import defaultdict
 import matplotlib.pyplot as plt
 import numpy as np
 import gymnasium as gym
 import tensorflow as tf
+from tensorflow import keras
 
 from gymTraining import trainGymRlModel
 import evaluation as eval
 
+from collections.abc import Mapping
+
 from keras.models import Sequential
-from keras.layers import Dense, Activation, Flatten
+from keras.layers import Dense
 from keras.optimizers import Adam
 
 # from rl.agents.dqn import DQNAgent
@@ -17,6 +21,8 @@ from keras.optimizers import Adam
 # from rl.memory import SequentialMemory
 
 n_episodes = 1000
+# n_episodes = 50
+
 
 env = gym.make("Blackjack-v1", sab=True)
 env = gym.wrappers.RecordEpisodeStatistics(env, deque_size=n_episodes)
@@ -52,7 +58,7 @@ class DeepQLearningBlackjack:
         model.add(Dense(16, activation='relu'))
         model.add(Dense(self.n_action, activation='softmax'))
         model.compile(loss='binary_crossentropy',
-                      optimizer=Adam(learning_rate=self.lr))
+                      optimizer=Adam())
 
         return model
 
@@ -124,16 +130,24 @@ trainGymRlModel(agent, env, n_episodes)
 
 print("Finished training.  Running evaluation")
 
-(wins, draws, losses, averageRet, iters) = eval.evaluate(
-    eval.policyOfGymAgent(agent), 2000)
+policy = eval.policyOfGymAgent(agent)
 
-print("Win rate: {}\nDraw Rate: {}\nLoss Rate: {}\nAverageRet: {}".format(
-    wins / iters, draws / iters, losses / iters, averageRet))
 
-eval.rlTrainingPlots(env, agent)
+cg.createPolicyEvaluation(policy, 1000)
 
-# state values & policy with usable ace (ace counts as 11)
-agent.gen_q_table()
-value_grid, policy_grid = eval.create_grids(agent, usable_ace=False)
-fig1 = eval.create_plots(value_grid, policy_grid, title="Without usable ace")
-plt.show()
+
+cg.createPolicyGrid(policy)
+
+# (wins, draws, losses, averageRet, iters) = eval.evaluate(
+#     eval.policyOfGymAgent(agent), 2000)
+
+# print("Win rate: {}\nDraw Rate: {}\nLoss Rate: {}\nAverageRet: {}".format(
+#     wins / iters, draws / iters, losses / iters, averageRet))
+
+# eval.rlTrainingPlots(env, agent)
+
+# # state values & policy with usable ace (ace counts as 11)
+# agent.gen_q_table()
+# value_grid, policy_grid = eval.create_grids(agent, usable_ace=False)
+# fig1 = eval.create_plots(value_grid, policy_grid, title="Without usable ace")
+# plt.show()

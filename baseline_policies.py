@@ -34,6 +34,20 @@ class DealerPolicy(Policy):
         return True if player_value < 17 else False
 
 
+class QPolicy(Policy):
+    def __init__(self, q_values):
+        self.q_values = q_values
+
+    def determineAction(self, player_value, usable_ace, show_card) -> bool:
+        """
+        Returns the best action with probability (1 - epsilon)
+        otherwise a random action with probability epsilon to ensure exploration.
+        """
+
+        obs = (player_value, show_card, 1 if usable_ace else 0)
+
+        return int(np.argmax(self.q_values[obs])) == 1
+
 # Thorp 1966 describes this strategy for playing blackjack, said to be an
 # optimal "Basic" strategy.  In theory all of our learning methods should
 # be attempting to approximate this strategy
@@ -42,6 +56,8 @@ class DealerPolicy(Policy):
 # Loss Rate: 0.45609
 # AverageRet: -0.00492
 # As we can see this is very close to an optimal strategy
+
+
 class ThorpStrategy(Policy):
     def determineAction(self, player_value, usable_ace, show_card) -> bool:
         # table[yourAmount - 12][show_card - 1]
