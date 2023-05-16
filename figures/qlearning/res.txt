@@ -1,0 +1,4 @@
+Win rate: 0.4406
+Draw Rate: 0.09174
+Loss Rate: 0.46766
+AverageRet: -0.02706

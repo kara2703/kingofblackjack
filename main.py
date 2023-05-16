@@ -47,11 +47,11 @@ def runQLearning():
     env = gym.make("Blackjack-v1", sab=True)
     env = gym.wrappers.RecordEpisodeStatistics(env, deque_size=n_episodes)
 
-    learning_rate = 0.1
+    learning_rate = 0.01
     start_epsilon = 1.0
     # reduce the exploration over time
     epsilon_decay = start_epsilon / (n_episodes / 2)
-    final_epsilon = 0.1
+    final_epsilon = 0.0
 
     agent = QLearningBlackjack(
         env,
@@ -96,8 +96,14 @@ def runValueIteration():
     agent = ValueIteration(env)
 
     policy = eval.policyOfGymAgent(agent)
-    cg.createPolicyEvaluation(policy)
+    cg.createPolicyEvaluation(policy, 10000)
+
     cg.createPolicyGrid(policy)
+
+    # agent.gen_q_table()
+
+    cg.createTrainingErrorPlot(agent)
+    cg.createEpisodeTrainingGraphs(env)
 
 
 def runDeepQlearnExper():
@@ -108,7 +114,7 @@ def runDeepQlearnExper():
     env = gym.make("Blackjack-v1", sab=True)
     env = gym.wrappers.RecordEpisodeStatistics(env, deque_size=n_episodes)
 
-    learning_rate = 0.1
+    learning_rate = 0.01
 
     start_epsilon = 1.0
     # reduce the exploration over time
@@ -121,9 +127,9 @@ def runDeepQlearnExper():
         initial_epsilon=start_epsilon,
         epsilon_decay=epsilon_decay,
         final_epsilon=final_epsilon,
-        min_sample=201,
-        memory_size=500,
-        sample_size=100,
+        min_sample=100,
+        memory_size=200,
+        sample_size=75,
         discount_factor=1.0
     )
 
@@ -151,5 +157,5 @@ def runDeepQlearnExper():
 # runValueIteration()
 # runThorp()
 # runMonteCarloES()
-# runQLearning()
-runDeepQlearnExper()
+runQLearning()
+# runDeepQlearnExper()

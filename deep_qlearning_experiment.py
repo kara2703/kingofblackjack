@@ -73,12 +73,13 @@ class DeepQLearningExperBlackjack:
         inputs = Input(shape=(3, ))
         hidden1 = Dense(units=32, activation='relu',)(inputs)
         hidden2 = Dense(units=16, activation='relu',)(hidden1)
-        hidden3 = Dense(units=16, activation='relu',)(hidden2)
+        # hidden3 = Dense(units=32, activation='relu',)(hidden2)
+        # hidden4 = Dense(units=16, activation='relu',)(hidden3)
         # hidden4 = Dense(units=32, activation='relu',
         #                 kernel_initializer=init)(hidden3)
         # hidden5 = Dense(units=32, activation='relu',
         #                 kernel_initializer=init)(hidden4)
-        outputs = Dense(units=2, activation='linear')(hidden3)
+        outputs = Dense(units=2, activation='linear')(hidden2)
 
         # inputs = Input(shape=(3, ))
         # hidden1 = Dense(units=200, activation='relu')(inputs)
@@ -96,7 +97,7 @@ class DeepQLearningExperBlackjack:
         model.summary()
 
         model.compile(loss='mean_squared_error',
-                      optimizer=SGD(learning_rate=0.001))
+                      optimizer=SGD(learning_rate=0.0001))
 
         return model
 
@@ -143,17 +144,17 @@ class DeepQLearningExperBlackjack:
         # Calculate the new q value
         newQValue = reward + self.discount_factor * future_q_value
 
-        # Update new q value
-        futurePrediction[action] = newQValue
-
         # print(futurePrediction)
 
         # Compute current value
-        currentQValues = self.q_network(obs)[0]
+        currentQValues = self.q_network(obs)[0].numpy()
 
         self.training_error.append(newQValue - currentQValues[action])
 
-        self.batchTarget.append(futurePrediction)
+        # Update new q value
+        currentQValues[action] = newQValue
+
+        self.batchTarget.append(currentQValues)
 
         if len(self.batchTarget) >= self.min_sample:
             allObservations = np.array(self.batchObs)

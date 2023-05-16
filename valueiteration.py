@@ -28,6 +28,8 @@ class ValueIteration:
         # A dictionary from (state) -> action maximizing the max in V(s)
         self.argV = defaultdict(lambda: 0)
 
+        self.training_error = []
+
         print("Training.")
         self.train()
 
@@ -105,6 +107,7 @@ class ValueIteration:
             if delta < self.theta:
                 print("BREAKKKKKKKKKK")
                 break
+            self.training_error.append(delta)
 
         print("No break!!!!!!!!!!!!!!!")
 

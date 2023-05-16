@@ -20,7 +20,7 @@ class QLearningBlackjack:
         start_epsilon: float,
         final_epsilon: float,
         n_episodes: float,
-        discount_factor: float = 0.95,
+        discount_factor: float = 1,
     ):
         self.q_values = defaultdict(lambda: np.zeros(env.action_space.n))
 
