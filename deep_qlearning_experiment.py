@@ -73,13 +73,13 @@ class DeepQLearningExperBlackjack:
         inputs = Input(shape=(3, ))
         hidden1 = Dense(units=32, activation='relu',)(inputs)
         hidden2 = Dense(units=16, activation='relu',)(hidden1)
-        # hidden3 = Dense(units=32, activation='relu',)(hidden2)
-        # hidden4 = Dense(units=16, activation='relu',)(hidden3)
+        hidden3 = Dense(units=16, activation='relu',)(hidden2)
+        hidden4 = Dense(units=16, activation='relu',)(hidden3)
         # hidden4 = Dense(units=32, activation='relu',
         #                 kernel_initializer=init)(hidden3)
         # hidden5 = Dense(units=32, activation='relu',
         #                 kernel_initializer=init)(hidden4)
-        outputs = Dense(units=2, activation='linear')(hidden2)
+        outputs = Dense(units=2, activation='linear')(hidden4)
 
         # inputs = Input(shape=(3, ))
         # hidden1 = Dense(units=200, activation='relu')(inputs)

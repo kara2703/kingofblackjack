@@ -19,13 +19,13 @@ import numpy as np
 
 
 def runMonteCarloES():
-    n_episodes = 500_000
+    n_episodes = 200_000
     env = gym.make("Blackjack-v1", sab=True)
     env = gym.wrappers.RecordEpisodeStatistics(env, deque_size=n_episodes)
 
     start_epsilon = 1
     final_epsilon = 0.0
-    epsilon_change = (start_epsilon - final_epsilon) / (n_episodes / 2)
+    epsilon_change = (start_epsilon - final_epsilon) / (n_episodes / 1.5)
 
     agent = MonteCarloBlackjack(
         env, start_epsilon=start_epsilon, final_epsilon=final_epsilon, epsilon_change=epsilon_change)
@@ -117,7 +117,7 @@ def runValueIteration():
 def runDeepQlearnExper():
     # tf.random.set_seed(1865)
 
-    n_episodes = 10000
+    n_episodes = 2000
 
     env = gym.make("Blackjack-v1", sab=True)
     env = gym.wrappers.RecordEpisodeStatistics(env, deque_size=n_episodes)
@@ -152,7 +152,7 @@ def runDeepQlearnExper():
     # cg.createPolicyEvaluation(qPolicy, 10000)
 
     print("Normal policy:")
-    cg.createPolicyEvaluation(policy, 1000)
+    cg.createPolicyEvaluation(policy, 10000)
 
     cg.createPolicyGrid(policy)
 
@@ -163,7 +163,7 @@ def runDeepQlearnExper():
 
 
 # runValueIteration()
-# runThorp()
-runMonteCarloES()
+runThorp()
+# runMonteCarloES()
 # runQLearning()
 # runDeepQlearnExper()

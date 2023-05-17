@@ -1,0 +1,47 @@
+R1:
+Win rate: 0.393
+Draw Rate: 0.054
+Loss Rate: 0.553
+AverageRet: -0.16
+R2:
+Win rate: 0.46
+Draw Rate: 0.058
+Loss Rate: 0.482
+AverageRet: -0.022
+
+
+be used.
+2023-05-16 23:06:12.276674: I tensorflow/tsl/cuda/cudart_stub.cc:28] Could not find cuda drivers on your machine, GPU will not be used.
+2023-05-16 23:06:12.277134: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2023-05-16 23:06:13.087015: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+Model: "model"
+_________________________________________________________________
+ Layer (type)                Output Shape              Param #   
+=================================================================
+ input_1 (InputLayer)        [(None, 3)]               0         
+                                                                 
+ dense (Dense)               (None, 32)                128       
+                                                                 
+ dense_1 (Dense)             (None, 16)                528       
+                                                                 
+ dense_2 (Dense)             (None, 16)                272       
+                                                                 
+ dense_3 (Dense)             (None, 16)                272       
+                                                                 
+ dense_4 (Dense)             (None, 2)                 34        
+                                                                 
+=================================================================
+Total params: 1,234
+Trainable params: 1,234
+Non-trainable params: 0
+_________________________________________________________________
+100%|██████████████████████████████████████████████████████████████████████████████████████| 2000/2000 [02:37<00:00, 12.67it/s]
+Finished training.  Running evaluation
+Normal policy:
+Evaluating a policy.
+100%|███████████████████████████████████████████████████████████████████████████████████| 10000/10000 [00:31<00:00, 314.02it/s]
+Win rate: 0.4321
+Draw Rate: 0.0581
+Loss Rate: 0.5098
+AverageRet: -0.0777
