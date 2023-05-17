@@ -12,7 +12,7 @@ err = np.loadtxt("OUT_MONTECARLO_V1.txt")
 
 err = err[:50_000]
 
-CONV = 1000
+CONV = 500
 
 fig, ax = plt.subplots(ncols=1)
 
