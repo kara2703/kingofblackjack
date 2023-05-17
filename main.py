@@ -10,6 +10,7 @@ import gymnasium as gym
 from valueiteration import ValueIteration
 from deep_qlearning_experiment import DeepQLearningExperBlackjack
 import tensorflow as tf
+import numpy as np
 
 # Win rate: 0.437
 # Draw Rate: 0.084
@@ -18,13 +19,13 @@ import tensorflow as tf
 
 
 def runMonteCarloES():
-    n_episodes = 5_000_000
+    n_episodes = 500_000
     env = gym.make("Blackjack-v1", sab=True)
     env = gym.wrappers.RecordEpisodeStatistics(env, deque_size=n_episodes)
 
     start_epsilon = 1
     final_epsilon = 0.0
-    epsilon_change = (start_epsilon - final_epsilon) / n_episodes
+    epsilon_change = (start_epsilon - final_epsilon) / (n_episodes / 2)
 
     agent = MonteCarloBlackjack(
         env, start_epsilon=start_epsilon, final_epsilon=final_epsilon, epsilon_change=epsilon_change)
@@ -35,10 +36,14 @@ def runMonteCarloES():
 
     policy = eval.policyOfGymAgent(agent)
 
+    err = np.array(agent.training_error)
+    np.savetxt("OUT_MONTECARLO_V1.txt", err)
+
     cg.createPolicyEvaluation(policy)
     cg.createPolicyGrid(policy)
 
-    cg.createQValuePlot(agent)
+    cg.createTrainingErrorPlot(agent)
+    cg.createEpisodeTrainingGraphs(env)
 
 
 def runQLearning():
@@ -74,7 +79,7 @@ def runQLearning():
     cg.createQValuePlot(agent)
 
     cg.createTrainingErrorPlot(agent)
-    cg.createEpisodeTrainingGraphs(env)
+    # cg.createEpisodeTrainingGraphs(env)
 
 
 def runThorp():
@@ -102,8 +107,11 @@ def runValueIteration():
 
     # agent.gen_q_table()
 
-    cg.createTrainingErrorPlot(agent)
-    cg.createEpisodeTrainingGraphs(env)
+    err = np.array(agent.training_error)
+    np.savetxt("OUT_VALUEITER_V1.txt", err)
+
+    cg.createTrainingErrorPlot(agent, 1)
+    # cg.createEpisodeTrainingGraphs(env)
 
 
 def runDeepQlearnExper():
@@ -156,6 +164,6 @@ def runDeepQlearnExper():
 
 # runValueIteration()
 # runThorp()
-# runMonteCarloES()
-runQLearning()
+runMonteCarloES()
+# runQLearning()
 # runDeepQlearnExper()

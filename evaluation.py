@@ -87,7 +87,7 @@ def episodeLengthPlot(env):
 
 
 # Requires agent to have training_error array defined
-def trainingErrorPlot(agent):
+def trainingErrorPlot(agent, rolling_length=500):
     fig, ax = plt.subplots(ncols=1)
     ax.set_title("Training Error")
     training_error_moving_average = (

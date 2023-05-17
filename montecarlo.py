@@ -62,13 +62,21 @@ class MonteCarloBlackjack:
 
         # If we terminated we want to perform an update
         if terminated:
+            avgTrainingError = 0
             for (obs, act) in self.episodeStates:
                 self.nAppear[obs][act] += 1
                 G = reward
                 n = self.nAppear[obs][act]
+
+                oldQ = self.q_values[obs][act]
                 # Update average reward in q value for this state, no discounting used
                 self.q_values[obs][act] = G / n + \
                     (n - 1) / n * self.q_values[obs][act]
+
+                avgTrainingError += self.q_values[obs][act] - oldQ
+
+            avgTrainingError /= len(self.episodeStates)
+            self.training_error.append(avgTrainingError)
 
             self.episodeStates = []
 

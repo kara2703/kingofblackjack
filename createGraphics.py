@@ -39,8 +39,8 @@ def createEpisodeTrainingGraphs(env):
     eval.episodeLengthPlot(env).show()
 
 
-def createTrainingErrorPlot(agent):
+def createTrainingErrorPlot(agent, avglen=500):
     """
         Create training error plots based on agent provided data.
     """
-    eval.trainingErrorPlot(agent).show()
+    eval.trainingErrorPlot(agent, avglen).show()
